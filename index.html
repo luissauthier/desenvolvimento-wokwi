@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Desenvolvimento com Wokwi</title>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: radial-gradient(circle at top, #1f2a44, #0b1020 65%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 460px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 24px;
+      padding: 35px 28px;
+      text-align: center;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(14px);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: rgba(0, 255, 170, 0.12);
+      color: #00ffaa;
+      font-size: 14px;
+      margin-bottom: 18px;
+      border: 1px solid rgba(0, 255, 170, 0.35);
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: #cbd5e1;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    #status {
+      font-size: 15px;
+      margin-bottom: 28px;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #facc15;
+    }
+
+    .led {
+      width: 95px;
+      height: 95px;
+      margin: 0 auto 28px;
+      border-radius: 50%;
+      background: #222;
+      border: 4px solid rgba(255,255,255,0.2);
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+      transition: 0.3s;
+    }
+
+    .led.ligado {
+      background: #22c55e;
+      box-shadow: 0 0 25px #22c55e, 0 0 60px #22c55e;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    button {
+      flex: 1;
+      min-width: 150px;
+      padding: 16px 22px;
+      border: none;
+      border-radius: 14px;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      color: white;
+      transition: 0.25s;
+    }
+
+    .on {
+      background: linear-gradient(135deg, #16a34a, #22c55e);
+    }
+
+    .off {
+      background: linear-gradient(135deg, #dc2626, #ef4444);
+    }
+
+    button:hover {
+      transform: translateY(-3px);
+      filter: brightness(1.12);
+    }
+
+    footer {
+      margin-top: 28px;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <div class="badge">MQTT + ESP32 + Wokwi</div>
+
+    <h1>Desenvolvimento com Wokwi</h1>
+    <p>Controle remoto de LED utilizando comunicação MQTT em tempo real.</p>
+
+    <h3 id="status">Conectando ao servidor MQTT...</h3>
+
+    <div id="ledVisual" class="led"></div>
+
+    <div class="buttons">
+      <button class="on" onclick="enviarComando('1')">LIGAR LED</button>
+      <button class="off" onclick="enviarComando('0')">DESLIGAR LED</button>
+    </div>
+
+    <footer>Tópico: univates/luis_sauthier/led</footer>
+  </div>
+
+  <script>
+    const client = mqtt.connect('wss://test.mosquitto.org:8081');
+    const topico = "univates/luis_sauthier/led";
+
+    const statusEl = document.getElementById('status');
+    const ledVisual = document.getElementById('ledVisual');
+
+    client.on('connect', () => {
+      statusEl.innerText = "Conectado ao servidor MQTT";
+      statusEl.style.color = "#22c55e";
+    });
+
+    client.on('error', (err) => {
+      statusEl.innerText = "Erro ao conectar ao servidor MQTT";
+      statusEl.style.color = "#ef4444";
+      console.error(err);
+    });
+
+    function enviarComando(estado) {
+      if (client.connected) {
+        client.publish(topico, estado);
+
+        if (estado === '1') {
+          ledVisual.classList.add('ligado');
+        } else {
+          ledVisual.classList.remove('ligado');
+        }
+
+        console.log(`Comando ${estado} enviado para o tópico ${topico}`);
+      } else {
+        alert("O site ainda não está conectado ao servidor MQTT.");
+      }
+    }
+  </script>
+</body>
+</html>
